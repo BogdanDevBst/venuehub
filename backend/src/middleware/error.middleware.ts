@@ -1,5 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../utils/errors';
 import logger from '../utils/logger';
 import config from '../config';
 
@@ -22,8 +21,9 @@ export const errorHandler = (
     let message = 'Internal server error';
 
     // Handle known errors
-    if (err instanceof AppError) {
-        statusCode = err.statusCode;
+    // We check for isAppError property since we are using factory functions now
+    if ((err as any).isAppError) {
+        statusCode = (err as any).statusCode;
         message = err.message;
     }
 

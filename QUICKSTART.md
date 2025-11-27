@@ -117,7 +117,6 @@ curl -X POST http://localhost:5000/api/venues \
     "pricePerHour": 100,
     "amenities": ["wifi", "projector", "whiteboard"],
     "images": []
-  }'
 ```
 
 ### 5. List Venues

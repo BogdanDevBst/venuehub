@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import * as authService from '../modules/auth/auth.service';
-import { AuthenticationError, AuthorizationError } from '../utils/errors';
+import { createAuthenticationError, createAuthorizationError } from '../utils/errors';
 
 // Extend Express Request type to include user
 declare global {
@@ -25,13 +25,13 @@ export const authenticate = async (
         const authHeader = req.headers.authorization;
 
         if (!authHeader) {
-            throw new AuthenticationError('No token provided');
+            throw createAuthenticationError('No token provided');
         }
 
         const token = authHeader.split(' ')[1];
 
         if (!token) {
-            throw new AuthenticationError('Invalid token format');
+            throw createAuthenticationError('Invalid token format');
         }
 
         const decoded = authService.verifyToken(token);
@@ -45,13 +45,13 @@ export const authenticate = async (
 export const requireRole = (allowedRoles: string[]) => {
     return (req: Request, _res: Response, next: NextFunction): void => {
         if (!req.user) {
-            throw new AuthenticationError('Authentication required');
+            throw createAuthenticationError('Authentication required');
         }
 
         const userRole = req.user.role;
 
         if (!allowedRoles.includes(userRole)) {
-            throw new AuthorizationError('Insufficient permissions');
+            throw createAuthorizationError('Insufficient permissions');
         }
 
         next();

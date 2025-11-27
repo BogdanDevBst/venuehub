@@ -6,7 +6,7 @@ import { useVenues, useDeleteVenue } from '@/lib/hooks/use-venues';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Plus, Search, MapPin, Users, Trash2, Edit, Eye } from 'lucide-react';
+import { Plus, Search, MapPin, Users, Trash2, Edit, Eye, Building2 } from 'lucide-react';
 
 export default function VenuesPage() {
   const [page, setPage] = useState(1);
