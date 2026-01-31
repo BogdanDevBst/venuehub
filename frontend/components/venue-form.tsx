@@ -225,9 +225,22 @@ export function VenueForm({
                   <FormControl>
                     <Input
                       type="number"
+                      min="0"
                       placeholder="50"
                       {...field}
-                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          field.onChange('');
+                          return;
+                        }
+                        const parsed = parseInt(value, 10);
+                        if (isNaN(parsed)) return;
+                        
+                        // Prevent negative inputs by taking absolute value or clamping
+                        field.onChange(Math.abs(parsed));
+                      }}
                     />
                   </FormControl>
                   <FormDescription>Maximum number of people</FormDescription>
@@ -248,9 +261,22 @@ export function VenueForm({
                     <Input
                       type="number"
                       step="0.01"
+                      min="0"
                       placeholder="100.00"
                       {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                      value={field.value}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        if (value === '') {
+                          field.onChange('');
+                          return;
+                        }
+                        const parsed = parseFloat(value);
+                        if (isNaN(parsed)) return;
+
+                        // Prevent negative inputs
+                        field.onChange(Math.abs(parsed));
+                      }}
                     />
                   </FormControl>
                   <FormDescription>Hourly rental rate</FormDescription>

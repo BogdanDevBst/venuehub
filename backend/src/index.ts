@@ -8,6 +8,7 @@ import config from './config';
 import logger from './utils/logger';
 import authRoutes from './modules/auth/auth.routes';
 import venueRoutes from './modules/venues/venue.routes';
+import bookingRoutes from './modules/bookings/booking.routes';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
 import { apiLimiter, authLimiter } from './middleware/rate-limit.middleware';
 
@@ -61,6 +62,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/venues', venueRoutes);
+app.use('/api/bookings', bookingRoutes);
 
 // 404 handler
 app.use(notFoundHandler);
