@@ -21,12 +21,54 @@ export function ImageUpload({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const convertToBase64 = (file: File): Promise<string> => {
+  const compressImage = (file: File, maxSizeMB: number = 1): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions to keep image under target size
+          // Start with original dimensions and reduce if needed
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1920;
+
+          if (width > MAX_WIDTH) {
+            height = (height * MAX_WIDTH) / width;
+            width = MAX_WIDTH;
+          }
+
+          if (height > MAX_HEIGHT) {
+            width = (width * MAX_HEIGHT) / height;
+            height = MAX_HEIGHT;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Start with quality 0.8 and reduce if needed
+          let quality = 0.8;
+          let compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+
+          // If still too large, reduce quality
+          while (compressedDataUrl.length > maxSizeMB * 1024 * 1024 * 1.37 && quality > 0.1) {
+            quality -= 0.1;
+            compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
     });
   };
 
@@ -36,10 +78,10 @@ export function ImageUpload({
       return 'Please upload an image file';
     }
 
-    // Check file size
+    // Check file size BEFORE conversion (original file size)
     const sizeMB = file.size / (1024 * 1024);
     if (sizeMB > maxSizeMB) {
-      return `Image size must be less than ${maxSizeMB}MB`;
+      return `Image size must be less than ${maxSizeMB}MB. Selected file is ${sizeMB.toFixed(2)}MB`;
     }
 
     return null;
@@ -61,18 +103,21 @@ export function ImageUpload({
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
+        
+        // Validate BEFORE processing
         const validationError = validateFile(file);
-
         if (validationError) {
           setError(validationError);
           return;
         }
 
         try {
-          const base64 = await convertToBase64(file);
-          newImages.push(base64);
+          // Compress image to reduce payload size
+          const compressed = await compressImage(file, 1); // Max 1MB per compressed image
+          newImages.push(compressed);
         } catch (err) {
-          setError('Failed to process image');
+          setError('Failed to process image. Please try a different image.');
+          console.error('Image compression error:', err);
           return;
         }
       }
